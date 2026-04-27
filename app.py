@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Form
 from fastapi.responses import HTMLResponse
 from src.workflow import workflow_builder
+import markdown
 
 app = FastAPI()
 
@@ -32,6 +33,7 @@ def generate(topic: str = Form(...)):
 
     # adjust key based on your state
     report = result.get("final_report", "No report generated")
+    markdown_report = markdown.markdown(report)
 
     return f"""
     <html>
@@ -40,7 +42,7 @@ def generate(topic: str = Form(...)):
         </head>
         <body>
             <h1>Generated Report</h1>
-            <p>{report}</p>
+            <p>{markdown_report}</p>
             <br>
             <a href="/">Generate another</a>
         </body>
