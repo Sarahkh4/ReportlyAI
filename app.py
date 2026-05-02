@@ -1,12 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from src.workflow import workflow_builder
-from pydantic import BaseModel
 from src.pdf_generator import generate_pdf
+from schema.app import TopicRequest
 
-class TopicRequest(BaseModel):
-    topic: str
-    
 app = FastAPI()
 
 try:

@@ -1,12 +1,10 @@
-from .nodes import(
-    orchestrator,
-    llm_call,
-    synthesizer,
-    assign_workers
-)
+from node.orchestrator import orchestrator
+from node.llm_call import llm_call
+from node.assign_workers import assign_workers
+from node.synthesizer import synthesizer
 
 from langgraph.graph import START,END, StateGraph
-from .state import State
+from schema.state import State
 
 
 def workflow_builder():
