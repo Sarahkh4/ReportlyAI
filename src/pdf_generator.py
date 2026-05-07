@@ -5,7 +5,6 @@ from reportlab.lib.styles import getSampleStyleSheet
 from bs4 import BeautifulSoup
 import asyncio
 
-
 async def generate_pdf(report: str) -> str:
 
     if not report or not report.strip():

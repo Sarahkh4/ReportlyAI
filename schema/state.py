@@ -1,6 +1,6 @@
 from typing_extensions import TypedDict
-from typing import Annotated, List
-from .schema import Section, Sections
+from typing import Annotated
+from .llm import Section
 import operator
 
 
