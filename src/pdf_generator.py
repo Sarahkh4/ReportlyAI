@@ -4,8 +4,10 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, ListFlowabl
 from reportlab.lib.styles import getSampleStyleSheet
 from bs4 import BeautifulSoup
 import asyncio
+from utils.loggers import logger
 
 async def generate_pdf(report: str) -> str:
+    logger.info("Starting PDF generation...")
 
     if not report or not report.strip():
         raise ValueError("Report content is empty. Cannot generate PDF.")
@@ -15,7 +17,7 @@ async def generate_pdf(report: str) -> str:
         html = markdown.markdown(report)
         soup = BeautifulSoup(html, "html.parser")
 
-        file_path = f"report_{uuid.uuid4().hex}.pdf"
+        file_path = f"pdfs/report_{uuid.uuid4().hex}.pdf"
         styles = getSampleStyleSheet()
         doc = SimpleDocTemplate(file_path)
         story = []
@@ -39,7 +41,9 @@ async def generate_pdf(report: str) -> str:
             story.append(Spacer(1, 12))
 
         await asyncio.to_thread(doc.build, story)
+        logger.info(f"PDF generation completed successfully. File saved as {file_path}")
         return file_path
     
     except Exception as e:
+        logger.error(f"Failed to generate PDF: {e}")
         raise RuntimeError(f"Failed to generate PDF: {e}")
