@@ -4,6 +4,7 @@ from utils.llm_planner import llm
 from langchain.agents import create_agent
 from src.tools.web_search import tavily_tool
 from utils.prompts.llm_prompt import SECTION_WRITER_PROMPT
+from utils.loggers import logger
 
 
 agent = create_agent(
@@ -12,6 +13,7 @@ agent = create_agent(
 )
 async def llm_call(state: WorkerState):
     """Worker writes a section of the report"""
+    logger.info("Worker starting to write a section...")
     try:
         section = await agent.ainvoke(
            { "messages":
@@ -21,8 +23,12 @@ async def llm_call(state: WorkerState):
             ]
         })
         final_message = section["messages"][-1].content
+        logger.info("Worker finished writing a section.")
         return {"completed_sections": [final_message]}
     
+    
+    
     except Exception as e:
+        logger.error(f"Failed to write section {e}")
         raise RuntimeError(f"Failed to write section {e}")
     

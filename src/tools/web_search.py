@@ -1,6 +1,7 @@
 from langchain_tavily import TavilySearch
 from langchain.tools import tool
 from services.tavily_search import tavily_client
+from utils.loggers import logger
 
 @tool
 def tavily_tool(query:str):
@@ -18,4 +19,7 @@ def tavily_tool(query:str):
         passed to a LangChain agent as part of its tools list.
 
     """
-    return tavily_client.invoke(query) 
+    logger.info(f"Initiating web search for query: {query}")
+    result = tavily_client.invoke(query)
+    logger.info(f"Web search completed for query: {query}")
+    return result

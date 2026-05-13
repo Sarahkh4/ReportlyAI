@@ -2,10 +2,12 @@ from schema.state import State
 from langchain.messages import SystemMessage, HumanMessage
 from utils.llm_planner import planner
 from utils.prompts.orchestrator_prompt import ORCHESTRATOR_PROMPT
+from utils.loggers import logger
+
 
 async def orchestrator(state: State):
     """Orchestrator that generates a plan for the report"""
-    
+    logger.info("Starting orchestrator...")
         
     try:
         report_sections = await planner.ainvoke(
@@ -14,7 +16,9 @@ async def orchestrator(state: State):
                 HumanMessage(content = f"Here is the report topic: {state['topic']}"),
             ]
         )
+        logger.info("Orchestrator finished generating report plan.")
         return {"sections": report_sections.sections}
-    
+
     except Exception as e:
+        logger.error(f"Failed to generate report plan from LLM: {e}")
         raise RuntimeError(f"Failed to generate report plan from LLM: {e}")
