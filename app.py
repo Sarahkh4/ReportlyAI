@@ -1,48 +1,75 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
-from src.workflow import workflow_builder
-from src.pdf_generator import generate_pdf
-from schema.app import TopicRequest
+from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from src.routes.generate import router as generate_router
+from src.routes.sse import router as sse_router
+from services.worker_service import process_jobs
+import asyncio
+import logging
 
-app = FastAPI()
-
-try:
-    orchestrator_worker = workflow_builder()
-except Exception as e:
-    raise RuntimeError(f"Failed to build workflow: {e}")    
+logger = logging.getLogger(__name__)
 
 
-@app.post("/generate")
-async def generate(req: TopicRequest):
-
-    try:
-        result = await orchestrator_worker.ainvoke({"topic": req.topic})
-
-        # adjust key based on your state
-        report = result.get("final_report", "No report generated")
-        return{
-            "topic":req.topic,
-            "report": report
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating report: {e}")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    asyncio.create_task(process_jobs())
+    logger.info("Background worker started")
+    yield
+    logger.info("App shutting down")
 
 
-@app.post("/download")
+app = FastAPI(lifespan=lifespan)
 
-async def download(req: TopicRequest):
-    try:
+app.include_router(generate_router)
+app.include_router(sse_router)
 
-        result = await orchestrator_worker.ainvoke({"topic": req.topic})
-        report = result.get("final_report", "")
 
-        if not report:
-            raise HTTPException(status_code=404, detail="Report not found")
+
+
+# from fastapi import FastAPI, HTTPException
+# from fastapi.responses import FileResponse
+# from src.workflow import workflow_builder
+# from src.pdf_generator import generate_pdf
+# from schema.app import TopicRequest
+
+# app = FastAPI()
+
+# try:
+#     orchestrator_worker = workflow_builder()
+# except Exception as e:
+#     raise RuntimeError(f"Failed to build workflow: {e}")    
+
+
+# @app.post("/generate")
+# async def generate(req: TopicRequest):
+
+#     try:
+#         result = await orchestrator_worker.ainvoke({"topic": req.topic})
+
+#         # adjust key based on your state
+#         report = result.get("final_report", "No report generated")
+#         return{
+#             "topic":req.topic,
+#             "report": report
+#         }
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error generating report: {e}")
+
+
+# @app.post("/download")
+
+# async def download(req: TopicRequest):
+#     try:
+
+#         result = await orchestrator_worker.ainvoke({"topic": req.topic})
+#         report = result.get("final_report", "")
+
+#         if not report:
+#             raise HTTPException(status_code=404, detail="Report not found")
         
-        pdf_report = await generate_pdf(report)
-        return FileResponse(pdf_report, filename="report.pdf", media_type="application/pdf")
+#         pdf_report = await generate_pdf(report)
+#         return FileResponse(pdf_report, filename="report.pdf", media_type="application/pdf")
     
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate PDF Please try again: {e}")
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Failed to generate PDF Please try again: {e}")
 
     
